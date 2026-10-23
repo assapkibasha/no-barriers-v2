@@ -42,3 +42,6 @@ next-env.d.ts
 
 # impeccable design-tool session cache
 /.impeccable/hook.cache.json
+
+# Playwright MCP snapshots and screenshots
+/.playwright-mcp/

@@ -27,7 +27,17 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The learner workspace preview is also available directly at `/learning`.
+Open [http://localhost:3000](http://localhost:3000).
+
+## Routes
+
+| Route | Page |
+| --- | --- |
+| `/` | Landing page |
+| `/login`, `/register` | Sign-in and registration preview (`/register?role=Educator` preselects a role) |
+| `/learn` | Learner dashboard |
+| `/learn/[lessonSlug]` | Lesson, e.g. `/learn/numbers` (locked until the previous lesson is complete) |
+| `/profile`, `/certificates`, `/studio` | Workspace screens |
 
 ## Scripts
 
@@ -45,13 +55,19 @@ Open [http://localhost:3000](http://localhost:3000). The learner workspace previ
 ```
 src/
   app/
-    page.tsx               Entry: landing, sign-in/register preview, learner workspace
-    landing.tsx            Public landing page
-    learning-system.tsx    Learner workspace preview (dashboard, lesson, profile, ...)
-    learning/page.tsx      Direct route to the workspace preview
-  lib/learning/rules.ts    Lesson completion rules: animations, answers, hearts, XP
-tests/                     Tests for the learning rules
-docs/                      Design references, theme and planning notes
+    page.tsx                 Landing page route
+    (auth)/                  /login and /register
+    (workspace)/             Learner workspace routes, sharing one layout and progress state
+  components/
+    landing/                 Landing page
+    auth/                    Sign-in / registration form
+    workspace/               Workspace shell, screens and ProgressProvider
+  lib/
+    curriculum.ts            Levels and lessons (single source for landing and workspace)
+    audiences.ts             Learner / Family / Educator roles
+    learning/rules.ts        Lesson completion rules: animations, answers, hearts, XP
+tests/                       Tests for the learning rules
+docs/                        Design references, theme and planning notes
 ```
 
 `src/lib/learning/rules.ts` holds the core learning logic and is written to run on the server. Answers are processed only once per submission, content-version changes are detected, and XP is never accepted from the browser.
