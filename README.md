@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# No Barriers
 
-## Getting Started
+An e-learning platform for **Rwandan Sign Language**, built so learners, families and educators can take part in more inclusive conversations, one lesson at a time.
 
-First, run the development server:
+This repository is the v2 rebuild. The original site lives at [assapkibasha/no-barriers](https://github.com/assapkibasha/no-barriers).
+
+![No Barriers landing page](docs/landing-preview.jpg)
+
+## Status
+
+Early preview. The landing page and learner workspace work, but there is **no backend yet**: sign-in is simulated and progress is stored in the browser's `localStorage`.
+
+Roadmap, tracked as issues:
+
+1. [#1](https://github.com/assapkibasha/no-barriers-v2/issues/1) Project foundations
+2. [#2](https://github.com/assapkibasha/no-barriers-v2/issues/2) Real routes and frontend restructure
+3. [#3](https://github.com/assapkibasha/no-barriers-v2/issues/3) MongoDB Atlas data layer
+4. [#4](https://github.com/assapkibasha/no-barriers-v2/issues/4) Authentication
+5. [#5](https://github.com/assapkibasha/no-barriers-v2/issues/5) Server-validated learning API
+
+## Getting started
+
+Requires Node.js 22 or newer.
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The learner workspace preview is also available directly at `/learning`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Production build |
+| `npm start` | Serve the production build |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript check without emitting |
+| `npm test` | Unit tests for the learning rules (Node test runner) |
 
-## Learn More
+## Project structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+  app/
+    page.tsx               Entry: landing, sign-in/register preview, learner workspace
+    landing.tsx            Public landing page
+    learning-system.tsx    Learner workspace preview (dashboard, lesson, profile, ...)
+    learning/page.tsx      Direct route to the workspace preview
+  lib/learning/rules.ts    Lesson completion rules: animations, answers, hearts, XP
+tests/                     Tests for the learning rules
+docs/                      Design references, theme and planning notes
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`src/lib/learning/rules.ts` holds the core learning logic and is written to run on the server. Answers are processed only once per submission, content-version changes are detected, and XP is never accepted from the browser.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tech stack
 
-## Deploy on Vercel
+- [Next.js 16](https://nextjs.org) (App Router) and React 19
+- TypeScript
+- CSS Modules, with shared brand tokens in `src/app/globals.css`
+- [Tabler Icons](https://tabler.io/icons)
+- Planned: MongoDB Atlas (Mongoose) and Better Auth, deployed on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Work happens on branches and is merged through pull requests. CI runs lint, typecheck, tests and a production build on every PR.
