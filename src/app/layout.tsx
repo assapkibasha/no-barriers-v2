@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "No Barriers | Learn without limits",
+  title: { default: "No Barriers | Learn without limits", template: "%s | No Barriers" },
   description: "A structured sign-language learning experience for No Barriers.",
 };
 

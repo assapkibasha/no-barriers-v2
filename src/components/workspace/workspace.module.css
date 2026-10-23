@@ -25,7 +25,7 @@
 .system :is(button,input) { font: inherit; }
 .system button { cursor: pointer; }
 .system button:disabled { cursor: default; }
-.system :is(button,input,summary):focus-visible { outline: 3px solid #ba651c; outline-offset: 4px; }
+.system :is(a,button,input,summary):focus-visible { outline: 3px solid #ba651c; outline-offset: 4px; }
 .system ::selection { background: #bfe2d5; color: var(--navy); }
 .sidebar { width: 240px; flex: 0 0 240px; height: 100dvh; position: sticky; top: 0; display: flex; flex-direction: column; padding: 28px 20px 24px; background: var(--card); }
 .brand { display: flex; align-items: center; gap: 10px; color: var(--navy); font-size: 18px; }
@@ -35,8 +35,8 @@
 .account small { display: block; color: var(--muted); font-size: 12px; }
 .avatar { display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%; color: white; background: var(--action); font-weight: 650; }
 .sidebar nav { display: grid; gap: 8px; }
-.sidebar nav button,.sidebarBottom button { display: flex; align-items: center; gap: 12px; border: 0; background: transparent; color: var(--muted); padding: 12px; min-height: 48px; border-radius: 10px; text-align: left; }
-.sidebar nav button.active { background: var(--selection); color: var(--hover); font-weight: 650; }
+.sidebar nav a,.sidebarBottom a { display: flex; align-items: center; gap: 12px; border: 0; background: transparent; color: var(--muted); padding: 12px; min-height: 48px; border-radius: 10px; text-align: left; }
+.sidebar nav a.active { background: var(--selection); color: var(--hover); font-weight: 650; }
 .sidebarBottom { margin-top: auto; padding-top: 32px; }
 .sidebarBottom p { color: var(--muted); font-size: 12px; padding: 0 12px 12px; }
 .workspace { flex: 1; min-width: 0; }
@@ -59,7 +59,7 @@
 .continue span { font-size: 13px; color: #b4c4db; }
 .continue h2 { font-size: 28px; margin: 8px 0; }
 .continue p { color: #b4c4db; }
-.continue button { flex-shrink: 0; }
+.continue a { flex-shrink: 0; }
 .directory { margin-top: 40px; }
 .directoryHeading { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
 .search { display: flex; align-items: center; gap: 10px; background: var(--card); padding: 10px 14px; border-radius: 10px; color: var(--muted); }
@@ -69,10 +69,10 @@
 .filters button { min-height: 44px; padding: 9px 16px; border: 0; border-radius: 10px; background: var(--card); color: var(--muted); font-size: 14px; }
 .filters .active { background: var(--selection); color: var(--hover); font-weight: 650; }
 .lessonGrid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
-.lessonCard { min-width: 0; text-align: left; border: 0; padding: 0; background: var(--card); border-radius: var(--radius); overflow: hidden; color: var(--text); }
-.lessonCard:disabled { background: #eceeed; color: #59615e; }
+.lessonCard { display: block; min-width: 0; text-align: left; border: 0; padding: 0; background: var(--card); border-radius: var(--radius); overflow: hidden; color: var(--text); }
+.lessonCard.locked { background: #eceeed; color: #59615e; }
 .lessonArt { height: 132px; display: flex; align-items: center; justify-content: center; position: relative; background: #deede7; color: var(--action); }
-.lessonCard:disabled .lessonArt { background: #e4e8e6; color: #59615e; }
+.lessonCard.locked .lessonArt { background: #e4e8e6; color: #59615e; }
 .lessonArt>span { position: absolute; bottom: 12px; left: 16px; font-size: 12px; }
 .cardBody { padding: 20px; }
 .cardBody small { font-size: 12px; color: var(--muted); }
@@ -107,10 +107,10 @@
 .course progress::-webkit-progress-value { background: var(--action); }
 .course progress::-moz-progress-bar { background: var(--action); }
 .course nav { display: grid; gap: 4px; margin-top: 16px; }
-.course nav button { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 10px; border: 0; border-radius: 8px; text-align: left; background: transparent; color: var(--text); font-size: 13px; }
-.course nav button svg { flex-shrink: 0; }
-.course nav button[aria-current] { background: var(--selection); color: var(--hover); font-weight: 650; }
-.course nav button:disabled { color: var(--muted); }
+.course nav > * { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 10px; border: 0; border-radius: 8px; text-align: left; background: transparent; color: var(--text); font-size: 13px; }
+.course nav > * svg { flex-shrink: 0; }
+.course nav a[aria-current] { background: var(--selection); color: var(--hover); font-weight: 650; }
+.course nav .locked { color: var(--muted); }
 .community { margin-top: 24px; padding: 0 16px; }
 .community h2 { font-size: 16px; }
 .community p { margin-top: 8px; font-size: 13px; color: var(--muted); }
