@@ -1,0 +1,42 @@
+{
+  "tool": "built-in image_gen",
+  "newPrompts": [
+    [
+      "inclusion-ref",
+      "UI mockup, horizontal 16:9, ONE website section. No Barriers education site in Khan Academy reference composition. White background, serif Georgia heading, sans body, teal #007f80 button, mint and peach collage accents. LEFT half editorial photo collage East African adult learning from tablet with colored paper behind. RIGHT eyebrow 'TOGETHER WE CAN CONNECT', headline 'Communication should include everyone.', paragraph 'Learning sign language can help families, educators, and communities connect. Take a first step toward conversations where more people can take part.' teal rectangular 4px radius button 'Explore the learning path'. Wide whitespace. No made-up metrics."
+    ],
+    [
+      "join-ref",
+      "UI mockup, horizontal 16:9, ONE website CTA section for No Barriers. White background. Centered Georgia heading 'Join No Barriers today'. Four stacked equal-width teal #007f80 rectangular buttons with 4px radius 'Learners', 'Educators', 'Families', 'Explore the program'. Subtle mint concentric rings to left behind button column and paper notebook near lower right. Airy Khan Academy layout, legible and simple. No other sections."
+    ],
+    [
+      "supporters-ref",
+      "UI mockup, horizontal 16:9, ONE supporters section for No Barriers. Very light gray #f5f5f5 surface. Centered serif Georgia heading 'Our supporters'. Two rows of four RESERVED logo slots with very faint outlines, no fake logos no company names. Small centered 'Supporter details will be shared here.' Generous white space matching Khan Academy supporter band. No other sections."
+    ],
+    [
+      "footer-ref",
+      "UI mockup, horizontal 16:9, ONE footer for No Barriers website. Navy #0d2344 background. Four open columns across 1200px max width: wide mission text on left light blue 'More ways to learn. More ways to connect.' with smaller paragraph 'No Barriers brings sign-language learning and everyday communication closer together.' Right three columns white sans text 'About' links Our purpose, How learning works, Inclusion; 'Get started' links Learners, Families, Educators; 'Learning' links Beginner, Intermediate, Advanced, Certificates. Below Language English, Program Rwandan Sign Language. Bottom thin divider copyright '2026 No Barriers' and Terms, Privacy, Accessibility. Spacious education site matching Khan Academy reference. No fake app badges or social accounts."
+    ],
+    [
+      "community-art",
+      "Create only an editorial photo collage asset for No Barriers sign-language education website. Landscape 4:3 on pure white background, NO TEXT OR UI OR LOGOS. Three diverse East African young adult learners, individual portrait cutouts arranged triangularly, smiling naturally; teal mint and soft peach paper shapes and a few pencil loops behind. One man in upper left, a woman upper right and a woman lower center, relaxed ordinary poses, no instructional sign demonstrations. Warm authentic photography with believable anatomy. Whole collage inside frame with generous white margins. This is provisional decorative marketing imagery, not a testimonial. Crisp cut-paper collage aesthetic as education homepages."
+    ],
+    [
+      "learner-art",
+      "Create only editorial illustration asset, horizontal 4:3, pure white background, NO TEXT, NO LOGOS. Teal-green laptop in three-quarter view showing a friendly East African educator on a video screen, natural relaxed hands visible but not demonstrating a particular sign, small playback controls without lettering. Mint pencil hatching, peach sunburst behind laptop, notebook and pencil in foreground. Handcrafted paper-cut collage with editorial photographic screen insert. Clean flat educational artwork for Rwandan Sign Language learning website, isolated central composition with white space all around, not full webpage."
+    ],
+    [
+      "inclusion-art",
+      "Create only editorial photo collage asset, horizontal 4:3, pure white background, NO TEXT OR LOGOS OR UI. East African young adult woman and adolescent family member learning together beside a tablet on desk, candid and warm, ordinary relaxed hands not sign-language instruction. Cutout photographic people with pale golden yellow rectangular paper behind and teal pencil hatch marks, small peach doodles. Airy handmade educational website collage, complete scene inside frame, no cropped heads or hands. Provisional inclusive learning marketing image."
+    ]
+  ],
+  "earlierReferences": {
+    "sharedDirection": "Single horizontal 16:9 high-fidelity website section design reference for No Barriers, a Rwandan Sign Language educational website. Faithful accessible Khan Academy-style layout. White, charcoal #25272f, teal #007f80, light gray #f5f5f5, mint and peach. Georgia-like serif headings and humanist sans-serif body. 4px button radius. No fabricated proof.",
+    "hero": "Header Explore Search, centered wordmark, Log in and Sign up. Left headline Learn sign language. Connect with confidence. Supporting paragraph and three-learner collage. Right Start your learning journey and Learner, Family, Educator choices.",
+    "directory": "Two columns of expanded category groups: Beginner, Intermediate, Advanced, Learn through video, Practice and progress, Certificates. Circular icons, light gray field and fine dividers.",
+    "benefits": "Centered Why learn with No Barriers? Three unboxed columns: Visual learning, A clear learning path, Progress you can see. Small illustrations, broad white space.",
+    "educators": "LEFT three East African young adult learner cutouts, RIGHT For educators, Help more people take part., body copy and teal Educators, start here.",
+    "learners": "LEFT For learners, Your first sign is a beginning., body and Learners, start here. RIGHT teal laptop with video learning illustration, notebook, pencil, mint hatching and peach sunburst.",
+    "statement": "Full-width light gray brand statement Learning to sign creates more ways to understand one another. Every conversation is a chance to include someone. Lower-right NO BARRIERS attribution, no fabricated testimonial."
+  }
+}

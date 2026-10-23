@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/app/globals.css"
+        ],
+        "createdAt": "2026-10-13T08:33:01.639Z",
+        "reason": "Agent review: both findings are structural dividers in dormant .site-version--3 demo styles. page.tsx renders only .site-version--1; no active V1 card has this accent. Preserve legacy variant CSS outside this task."
+      }
+    ]
+  }
+}
