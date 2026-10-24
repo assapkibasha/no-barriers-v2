@@ -1,9 +1,6 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import LearningSystem from "../learning-system";
-import { useRouter } from "next/navigation";
-
+/** The old local preview now lives at /learn with real accounts. */
 export default function LearningPreview() {
-  const router = useRouter();
-  return <LearningSystem onExit={() => router.push("/")} />;
+  redirect("/learn");
 }

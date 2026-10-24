@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# No Barriers — Rwandan Sign Language learning
 
-## Getting Started
+Next.js 16 app with MongoDB accounts, a Duolingo-style course, and a 3D signing avatar.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. `npm install`
+2. Copy `.env.example` to `.env.local` and set `MONGODB_URI` (MongoDB Atlas) and `ADMIN_EMAILS`.
+3. `npm run dev`, open http://localhost:3000, create an account.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Indexes are created automatically on first connection.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Route | Who | What |
+| --- | --- | --- |
+| `/` | everyone | Landing page |
+| `/register`, `/login` | everyone | Accounts (email + password) |
+| `/learn` | learners | Dashboard: course, streak, XP, profile, certificates |
+| `/learn/[lessonId]` | learners | Lesson player |
+| `/admin` | admins | Monitoring: accounts, activity, per-learner progress |
+| `/studio/signs` | admins (open in development) | Preview every sign and any sequence |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Data (MongoDB)
 
-## Learn More
+- `users` — profile, role, XP, daily streak (Rwanda time), left-handed setting, login lockout counters. Passwords are scrypt hashes.
+- `sessions` — opaque session tokens; only a SHA-256 hash is stored. Expire after 30 days (TTL index).
+- `progress` — one document per learner and lesson: hearts, watched animations, correct answers, attempts, mistakes.
+- `events` — activity log for monitoring (sign-ups, sign-ins, answers, completions). Kept 400 days.
 
-To learn more about Next.js, take a look at the following resources:
+Answers are checked on the server (`src/app/actions/learning.ts`) using the rules in `src/lib/learning/rules.ts`; the browser never receives the answer key and cannot award itself XP.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Course
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`src/lib/course/curriculum.ts` holds the full course: 19 units across Beginner, Intermediate and Advanced, guided by the REB *Teacher Training Manual on RSL* (2025). Lessons list their signs, fingerspelled words, numbers and phrases. `src/lib/course/exercises.ts` turns each lesson into steps deterministically: learn a sign → check it immediately → practise the other way round → spaced review of earlier signs → spelling, numbers, phrases. Missed questions return at the end; five hearts per attempt; at zero hearts the learner reviews the missed signs to refill.
 
-## Deploy on Vercel
+Lessons without animated content show as "coming soon". Status: see `docs/sign-animation-status.md`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Signing avatar
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Model: `public/avatar/berthin.glb` (0.75 MB), converted from `Berthin.fbx` (45 MB) with FBX2glTF, then deduplicated, textures resized to 1024² WebP, geometry quantized and Meshopt-compressed.
+- Engine: `src/lib/signing/`. Signs are **data, not baked clips**: a few keyframes per sign (handshape, body-relative location, palm and finger direction, arcs). At runtime: two-bone arm IK with natural elbow placement, clavicle and torso follow-through, forearm twist sharing, Hermite motion paths, handshapes that form slightly ahead of the movement, distance-timed coarticulated transitions between signs, and a procedural idle (breathing, weight shift, glances, finger settling).
+- Physical realism, applied to every sign automatically:
+  - Joint space (`solve.ts`, `track.ts`): the hand is driven the way the arm moves it — forearm rotation (thumb-up = 0°, about 100° toward palm-down, 95° toward palm-up), wrist bend and wrist tilt, each with human limits (`LIMITS`). Every in-between pose is a real joint position, so impossible turns and flips cannot happen. Finger and thumb joints are clamped too (`rig.ts`).
+  - Elbow choice: when a sign is built, each key tries elbow positions around the shoulder–wrist line and keeps the one that keeps the forearm and wrist in range, the arm out of the body, the elbow low, and close to the previous key (`chooseElbow`).
+  - Smooth motion: every channel is a spline that comes to rest at reversals (back-and-forth signs), and handshapes form slightly ahead of the movement.
+  - Timing (`track.ts` `SPEED`, `compile.ts` `retime`): every movement lasts at least as long as a human hand needs for its distance, rotation and finger change (about 1 m/s, 400°/s, 500°/s per finger joint). Both hands share one time warp so contacts stay in sync. Transitions between signs and fingerspelled letters follow the same rule.
+  - Collisions (`physics.ts`, `player.ts`): capsules for head, jaw, neck, chest, shoulders and belly; the other arm (upper arm, forearm) and the other hand are obstacles too. Hands are pushed out, elbows swing around the body, crossed forearms keep the dominant one in front, and paths that would cross bow around the other hand. Corrections follow their targets smoothly (fast when contact builds, slow when it releases) and the elbow swing is speed-limited, so motion never snaps.
+  - Audit: `npm run audit:signs` plays every sign at 60 fps with `npm run dev` running and reports hand rotation speed, elbow speed, body overlap and forearm gaps.
+- Camera: torso framing, drag to turn within ±60° (never behind the signer), no zoom or pan. The view stays where the learner leaves it and glides back to the front when the content changes (next sign, question or lesson); Replay keeps the angle.
+- The engine (three.js) loads only on lesson pages, renders only while visible, and works with any Mixamo-rigged character.
+
+### Adding a sign
+
+1. Find the illustration in the manual.
+2. Add it to the topic file in `src/lib/signing/signs/` (or create a topic and register it in `signs/index.ts` and `src/lib/course/lexicon.ts`). Use ids like `topic.word`.
+3. Preview it at `/studio/signs`; drag the signer to check from the side; tick "Left-handed" to check mirroring.
+4. Reference it from a lesson in `curriculum.ts`.
+
+Key vocabulary (`types.ts`): `at` (body landmark or `other.<site>` on the other hand), `off` [out, up, forward] in metres, `site` (which part of the hand touches), `dir` (where the hand points), `palm` (where the palm faces), `arc`, `hold`, `flow`. Compound signs use `seq` (e.g. JANUARY = MONTH + 1).
+
+## Checks
+
+- `npx tsc --noEmit`, `npm run lint`, `npm run build`
+- `npm test` — learning rules and course integrity tests
