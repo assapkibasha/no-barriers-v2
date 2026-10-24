@@ -59,5 +59,5 @@ Key vocabulary (`types.ts`): `at` (body landmark or `other.<site>` on the other 
 
 ## Checks
 
-- `npx tsc --noEmit`, `npm run lint`, `npm run build`
+- `npm run typecheck`, `npm run lint`, `npm run build`
 - `npm test` — learning rules and course integrity tests
