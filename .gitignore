@@ -45,3 +45,11 @@ next-env.d.ts
 
 # Playwright MCP snapshots and screenshots
 /.playwright-mcp/
+
+# source assets: the app uses public/avatar/berthin.glb; keep originals out of the public bundle
+/public/Berthin.fbx
+/public/Berthin.fbm/
+/public/sign_language_book.pdf
+
+# physics audit output
+sign-audit.json

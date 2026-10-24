@@ -5,16 +5,16 @@ import Link from "next/link";
 import { FormEvent, useRef, useState } from "react";
 import { IconArrowUpRight, IconAward, IconBook, IconChartBar, IconChevronDown, IconChevronRight, IconHandStop, IconMenu2, IconPlayerPlay, IconRoute, IconSearch, IconX } from "@tabler/icons-react";
 import { audiences, registerHref } from "@/lib/audiences";
-import { lessonsInLevel } from "@/lib/curriculum";
+import { unitsInLevel } from "@/lib/course/curriculum";
 import styles from "./landing.module.css";
 
 type Detail = { title: string; body: string; learning?: boolean };
 
 // Provisional copy. Level topics come from the shared curriculum; replace the rest from the approved brief.
 const groups = [
-  { id: "beginner", title: "Beginner", icon: IconHandStop, tone: "mint", items: lessonsInLevel("Beginner").map(lesson => lesson.title), description: "Begin with the building blocks of Rwandan Sign Language, from your first handshapes to everyday expressions." },
-  { id: "intermediate", title: "Intermediate", icon: IconBook, tone: "peach", items: lessonsInLevel("Intermediate").map(lesson => lesson.title), description: "Bring your first signs together and develop your conversational skills." },
-  { id: "advanced", title: "Advanced", icon: IconChartBar, tone: "lavender", items: lessonsInLevel("Advanced").map(lesson => lesson.title), description: "Continue your learning path with more detailed, everyday conversations." },
+  { id: "beginner", title: "Beginner", icon: IconHandStop, tone: "mint", items: unitsInLevel("Beginner").map(unit => unit.title), description: "Begin with the building blocks of Rwandan Sign Language, from your first handshapes to everyday expressions." },
+  { id: "intermediate", title: "Intermediate", icon: IconBook, tone: "peach", items: unitsInLevel("Intermediate").map(unit => unit.title), description: "Bring your first signs together and develop your conversational skills." },
+  { id: "advanced", title: "Advanced", icon: IconChartBar, tone: "lavender", items: unitsInLevel("Advanced").map(unit => unit.title), description: "Continue your learning path with more detailed, everyday conversations." },
   { id: "video-learning", title: "Video learning", icon: IconPlayerPlay, tone: "peach", items: ["Watch a lesson", "Replay and practise", "Follow your progress"], description: "Watch each lesson, pause when you need to, and return to the parts you want to practise." },
   { id: "practice", title: "Practice and progress", icon: IconRoute, tone: "mint", items: ["Learning levels", "Lesson completion", "Continue learning"], description: "Follow a sequence of lessons and build on what you have already learned." },
   { id: "certificates", title: "Certificates", icon: IconAward, tone: "yellow", items: ["Level assessments", "Completion certificates"], description: "The program includes level assessments and completion certificates. Full requirements will be confirmed in the program guide." },
