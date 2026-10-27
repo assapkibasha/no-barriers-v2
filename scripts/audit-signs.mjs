@@ -1,7 +1,8 @@
 // Physics audit: plays every sign frame by frame (60 fps) in the sign studio and reports hand flips
 // (rotation speed), elbow jumps, hand–body overlap and forearms passing through each other.
 // Usage: start `npm run dev`, then `npm run audit:signs -- [topic,topic,...] [report.json]`.
-// Env: BASE_URL (default http://localhost:3000), CHROME (path to a local Chrome/Edge).
+// Env: BASE_URL (default http://localhost:3000), CHROME (path to a local Chrome/Edge),
+// AUDIT_EMAIL / AUDIT_PASSWORD (an admin account, needed when auditing a production build).
 import { chromium } from "playwright-core";
 import fs from "node:fs";
 
@@ -11,6 +12,14 @@ const BASE = process.env.BASE_URL || "http://localhost:3000";
 const browser = await chromium.launch({ executablePath: process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe", args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
 const page = await browser.newPage({ viewport: { width: 500, height: 400 } });
 page.setDefaultTimeout(600000);
+// On a production build the studio is admin-only: sign in first when credentials are given.
+if (process.env.AUDIT_EMAIL) {
+  await page.goto(`${BASE}/login`, { waitUntil: "networkidle" });
+  await page.fill("input[name=email]", process.env.AUDIT_EMAIL);
+  await page.fill("input[name=password]", process.env.AUDIT_PASSWORD ?? "");
+  await page.click("button[type=submit]");
+  await page.waitForURL(/\/learn$/);
+}
 await page.goto(`${BASE}/studio/signs`, { waitUntil: "networkidle" });
 await page.waitForFunction(() => window.__studio?.player?.(), null, { timeout: 300000 });
 

@@ -173,11 +173,13 @@ export function planArm(arm: ArmRig, S: Vector3, wristPos: Vector3, fdir: Vector
   const offset = opts.offset ?? 0;
   out.contact = opts.body ? depthAt(elbowAt(offset, out.E)) : 0;
   out.clearance = offset;
-  if (opts.body && opts.findClearance && out.contact > 0) {
+  // Search whenever the elbow is in contact or still swung away, so it returns to its natural place
+  // as soon as nothing is in the way (otherwise a swing from an earlier sign would linger at rest).
+  if (opts.body && opts.findClearance && (out.contact > 0 || Math.abs(offset) > 0.5)) {
     let best = Infinity;
     for (let o = -70; o <= 70; o += 7) {
-      // Prefer staying on the side the elbow is already on: switching sides is a big movement.
-      const cost = depthAt(elbowAt(o, _v[13])) * 600 + Math.abs(o - offset) * 0.06 + Math.abs(o) * 0.01 + (o * offset < 0 ? 0.6 : 0);
+      // Pull toward the natural elbow; switching sides is a big movement, so it costs extra.
+      const cost = depthAt(elbowAt(o, _v[13])) * 600 + Math.abs(o - offset) * 0.01 + Math.abs(o) * 0.03 + (o * offset < 0 ? 0.6 : 0);
       if (cost < best) { best = cost; out.clearance = o; }
     }
   }

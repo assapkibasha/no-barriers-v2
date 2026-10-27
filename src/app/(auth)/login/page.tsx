@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/server/auth";
-import AuthForm from "../AuthForm";
+import { LoginForm } from "../AuthForm";
 
 export const metadata = { title: "Sign in | No Barriers" };
 
-export default async function LoginPage() {
+export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   if (await getCurrentUser()) redirect("/learn");
-  return <AuthForm mode="login" />;
+  const email = (await searchParams).email;
+  return <LoginForm email={typeof email === "string" ? email : ""} />;
 }

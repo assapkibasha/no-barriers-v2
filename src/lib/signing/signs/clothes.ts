@@ -82,8 +82,8 @@ const signs: SignDef[] = [
     { t: 0.4, hs: "flatSpread", off: [0.08, 0.0, 0.08], dir: "in+up", palm: "back+in", arc: [0, 0.02, 0.02] }, { t: 0.52 },
   ], { tip: "Fingers on the chest open outward, like rays of light.", review: true }),
   one("color.black", "Black", [
-    { t: 0, hs: "point", at: "temple", site: "index", off: [-0.04, 0.02, 0.03], dir: "in", palm: "down+back" },
-    { t: 0.4, off: [0.04, 0.03, 0.0], arc: [0, 0.01, 0.01] }, { t: 0.52 },
+    { t: 0, hs: "point", at: "temple", site: "index", off: [-0.03, 0.02, 0.055], dir: "in", palm: "down+back" },
+    { t: 0.4, off: [0.04, 0.03, 0.03], arc: [0, 0.01, 0.01] }, { t: 0.52 },
   ], { tip: "Index finger draws across the forehead toward the side." }),
   one("color.pink", "Pink", [
     { t: 0, hs: "pinch", at: "nose", site: "index", off: [0.02, -0.01, 0.02], dir: "in+up", palm: "back" },

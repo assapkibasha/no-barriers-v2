@@ -34,6 +34,16 @@ Answers are checked on the server (`src/app/actions/learning.ts`) using the rule
 
 Lessons without animated content show as "coming soon". Status: see `docs/sign-animation-status.md`.
 
+## Feedback: sounds and reactions
+
+`src/lib/sound.ts` synthesises the lesson sounds with the Web Audio API (no audio files): marimba and FM-bell timbres through a small room reverb — a wooden tap on choosing an answer, a bright "ding-ding" when correct, a muted double thud when wrong, a rising sparkle at 3, 5, 10, 15 and 20 in a row, low notes when the hearts run out, a refill flourish, a whoosh when starting or moving to the next lesson, and a brass fanfare with cymbal shimmer when a lesson is complete. Phones that support it (Android) vibrate with matching patterns. Learners can mute sound from the speaker button in the lesson bar (remembered in the browser).
+
+The signer reacts too (`src/lib/signing/reactions.ts`, `signs/react.ts`): each lesson opens with a different greeting (HELLO, HELLO YOU, HELLO HOW YOU, a wave, or GOOD MORNING / AFTERNOON / EVENING by the learner's clock), it nods at correct answers and gives a gentle head shake at wrong ones (`player.react()`), and each completed lesson ends with a different celebration (Deaf applause in several styles, two thumbs up, GOOD + applause), never the same twice in a row.
+
+Completion rule: a lesson is complete when every new sign has been watched and every question answered correctly; a question's own signing does not have to finish playing. Lessons recorded under the older, stricter rule are completed automatically when reopened.
+
+On phones the study screen fits one viewport with no page scrolling: signer on top, the question with a 2×2 answer grid, and the Check/Continue bar at the bottom.
+
 ## Signing avatar
 
 - Model: `public/avatar/berthin.glb` (0.75 MB), converted from `Berthin.fbx` (45 MB) with FBX2glTF, then deduplicated, textures resized to 1024² WebP, geometry quantized and Meshopt-compressed.

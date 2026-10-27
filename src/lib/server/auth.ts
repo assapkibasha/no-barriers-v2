@@ -45,7 +45,7 @@ export async function destroySession() {
   jar.delete(SESSION_COOKIE);
 }
 
-export type SessionUser = Pick<UserDoc, "email" | "name" | "role" | "audience" | "xp" | "streak" | "settings"> & { id: string };
+export type SessionUser = Pick<UserDoc, "email" | "name" | "role" | "audience" | "xp" | "streak" | "settings"> & { id: string; /** ISO date the account was created. */ createdAt: string };
 
 /** The signed-in user for this request, or null. Cached per request. */
 export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
@@ -58,7 +58,7 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   if (!user) return null;
   // Monitoring: record activity at most every few minutes.
   if (Date.now() - user.lastActiveAt.getTime() > 5 * 60_000) void users.updateOne({ _id: user._id }, { $set: { lastActiveAt: new Date() } });
-  return { id: user._id.toHexString(), email: user.email, name: user.name, role: user.role, audience: user.audience, xp: user.xp, streak: user.streak, settings: user.settings };
+  return { id: user._id.toHexString(), email: user.email, name: user.name, role: user.role, audience: user.audience, xp: user.xp, streak: user.streak, settings: user.settings, createdAt: user.createdAt.toISOString() };
 });
 
 export async function requireUser() {

@@ -13,13 +13,12 @@ const text = (data: FormData, key: string) => String(data.get(key) ?? "").trim()
 
 export async function signUp(_: AuthState, data: FormData): Promise<AuthState> {
   const name = text(data, "name"), email = normalizeEmail(text(data, "email"));
-  const password = String(data.get("password") ?? ""), confirm = String(data.get("confirm") ?? "");
+  const password = String(data.get("password") ?? "");
   const audience = AUDIENCES.includes(text(data, "audience") as Audience) ? (text(data, "audience") as Audience) : "Learner";
   const fields = { name, email, audience };
   if (name.length < 2 || name.length > 60) return { error: "Enter your name (2 to 60 characters).", fields };
   if (!EMAIL.test(email) || email.length > 200) return { error: "Enter a valid email address.", fields };
   if (password.length < 8 || password.length > 200) return { error: "Use a password of at least 8 characters.", fields };
-  if (password !== confirm) return { error: "Passwords do not match. Please try again.", fields };
 
   try {
     const { users } = await collections();
@@ -36,6 +35,19 @@ export async function signUp(_: AuthState, data: FormData): Promise<AuthState> {
     return { error: "We could not create your account right now. Please try again shortly.", fields };
   }
   redirect("/learn");
+}
+
+/** Step one of registration: is this email new? (Mirrors the sign-up rules.) */
+export async function checkEmail(raw: string): Promise<{ ok: boolean; exists?: boolean; error?: string }> {
+  const email = normalizeEmail(raw);
+  if (!EMAIL.test(email) || email.length > 200) return { ok: false, error: "Enter a valid email address." };
+  try {
+    const { users } = await collections();
+    return { ok: true, exists: !!(await users.findOne({ email }, { projection: { _id: 1 } })) };
+  } catch (error) {
+    console.error("Email check failed", error);
+    return { ok: false, error: "We could not check this email right now. Please try again shortly." };
+  }
 }
 
 export async function signIn(_: AuthState, data: FormData): Promise<AuthState> {

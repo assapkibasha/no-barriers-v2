@@ -14,7 +14,8 @@ export default async function LessonPage({ params }: PageProps<"/learn/[lessonId
   const status = overview.units.flatMap(u => u.lessons).find(l => l.id === lessonId)?.status;
   if (status === "locked") redirect("/learn");
   const { plan } = getLesson(lessonId);
-  return <LessonRunner plan={plan} leftHanded={user.settings.leftHanded} nextLessonId={READY_ORDER[READY_ORDER.indexOf(lessonId) + 1] ?? null} />;
+  // Keyed by lesson so moving to the next lesson starts a fresh player instead of reusing the old state.
+  return <LessonRunner key={lessonId} plan={plan} leftHanded={user.settings.leftHanded} nextLessonId={READY_ORDER[READY_ORDER.indexOf(lessonId) + 1] ?? null} />;
 }
 
 export async function generateMetadata({ params }: PageProps<"/learn/[lessonId]">) {

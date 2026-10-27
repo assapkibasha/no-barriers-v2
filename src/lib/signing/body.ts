@@ -38,7 +38,11 @@ export type BodyInput = {
   reach?: { lateral: number; height: number; forward: number };
   /** +1 when the dominant hand is the right hand. */
   domSign: number;
+  /** Momentary reactions (seconds since they started). */
+  reactions?: { kind: Reaction; age: number }[];
 };
+
+export type Reaction = "happy" | "sad";
 
 /** Reset the trunk and head to rest, then layer idle motion and non-manual markers. */
 export function applyBody(rig: Rig, input: BodyInput) {
@@ -66,6 +70,14 @@ export function applyBody(rig: Rig, input: BodyInput) {
       case "lean": lean += env * 4; break;
       case "smile": headPitch -= env * 2; break;
     }
+  }
+
+  // Reactions: an approving double nod with the chest lifting, or a gentle head shake with a small slump.
+  for (const r of input.reactions ?? []) {
+    const env = smooth(r.age / 0.15) * (1 - smooth((r.age - 0.9) / 0.4));
+    if (env <= 0) continue;
+    if (r.kind === "happy") { headPitch += env * 6 * Math.max(0, Math.sin(r.age * 2 * Math.PI * 1.8)); lean -= env * 2; headRoll += env * 3 * input.domSign; }
+    else { headYaw += env * 6 * Math.sin(r.age * 2 * Math.PI * 1.4); headPitch += env * 5; lean += env * 2.5; }
   }
 
   // Trunk follows the dominant hand a little: turn toward it and lean into far reaches.

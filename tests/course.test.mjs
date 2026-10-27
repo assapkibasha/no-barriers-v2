@@ -45,3 +45,15 @@ test('numbers follow the manual: 10 + digit for teens, digits above, THOUSAND fo
   assert.deepEqual(numberSigns(10000), ['num.10', 'num.thousand']);
   assert.deepEqual(numberSigns(1500), ['num.1', 'num.thousand', 'num.5', 'num.0', 'num.0']);
 });
+
+test('a lesson completes from watched new signs and correct answers, without waiting for question playback', async () => {
+  const { startLesson, recordAnimation, submitAnswer, isLessonComplete } = await import('../src/lib/learning/rules.ts');
+  for (const id of ['u2-l2', 'u2-l5', 'u3-l3']) {
+    const { definition, answers } = buildLesson(id);
+    let state = startLesson(definition);
+    for (const a of definition.requiredAnimations) state = recordAnimation(definition, state, a);
+    for (const q of definition.questions) state = submitAnswer(definition, state, { submissionId: q.id, questionId: q.id, optionId: answers[q.id] }, 10);
+    assert.ok(isLessonComplete(definition, state), `${id} should be complete`);
+    assert.ok(definition.requiredAnimations.every(a => !a.startsWith('q:')), `${id} must not require question playback`);
+  }
+});

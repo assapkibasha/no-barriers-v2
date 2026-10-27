@@ -13,6 +13,8 @@ type Props = {
   /** Words shown under the avatar, one per item; the current one is highlighted. */
   captions?: string[];
   autoPlay?: boolean;
+  /** Changes whenever a new step starts, so the sign auto-plays even if it is the same sign as before. */
+  playKey?: string | number;
   mirror?: boolean;
   /** Hide the caption, e.g. during a recognition question. */
   hideCaption?: boolean;
@@ -22,7 +24,7 @@ type Props = {
 };
 
 /** The 3D signer: replay, slow motion, and a limited front-facing orbit. */
-const SignStage = forwardRef<SignStageHandle, Props>(function SignStage({ items, captions, autoPlay = true, mirror = false, hideCaption, onPlayed, className, label = "Sign language animation" }, ref) {
+const SignStage = forwardRef<SignStageHandle, Props>(function SignStage({ items, captions, autoPlay = true, playKey, mirror = false, hideCaption, onPlayed, className, label = "Sign language animation" }, ref) {
   const host = useRef<HTMLDivElement>(null);
   const player = useRef<SignAvatarPlayer | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
@@ -67,7 +69,7 @@ const SignStage = forwardRef<SignStageHandle, Props>(function SignStage({ items,
   useEffect(() => { player.current?.setSpeed(slow ? 0.5 : 1); }, [slow, status]);
   useEffect(() => {
     if (status === "ready" && autoPlay) void play();
-  }, [status, itemsKey, autoPlay]);
+  }, [status, itemsKey, autoPlay, playKey]);
 
   return <figure className={`${styles.stage} ${className ?? ""}`} aria-label={label}>
     <div ref={host} className={styles.canvas} />
