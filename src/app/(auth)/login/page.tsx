@@ -1,8 +1,9 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { LoginForm } from "@/components/auth/AuthForm";
 import { getCurrentUser } from "@/lib/server/auth";
-import { LoginForm } from "../AuthForm";
 
-export const metadata = { title: "Sign in | No Barriers" };
+export const metadata: Metadata = { title: "Sign in" };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   if (await getCurrentUser()) redirect("/learn");

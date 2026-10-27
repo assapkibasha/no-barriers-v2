@@ -1,23 +1,58 @@
-# No Barriers — Rwandan Sign Language learning
+# No Barriers
 
-Next.js 16 app with MongoDB accounts, a Duolingo-style course, and a 3D signing avatar.
+An e-learning platform for **Rwandan Sign Language**, built so learners, families and educators can take part in more inclusive conversations, one lesson at a time. It has accounts stored in MongoDB, a Duolingo-style course and a 3D signing avatar.
 
-## Setup
+This repository is the v2 rebuild. The original site lives at [assapkibasha/no-barriers](https://github.com/assapkibasha/no-barriers).
+
+![No Barriers landing page](docs/landing-preview.jpg)
+
+## Getting started
+
+Requires Node.js 22 or newer and a MongoDB Atlas database (the free tier is enough).
 
 1. `npm install`
-2. Copy `.env.example` to `.env.local` and set `MONGODB_URI` (MongoDB Atlas) and `ADMIN_EMAILS`.
-3. `npm run dev`, open http://localhost:3000, create an account.
+2. Copy `.env.example` to `.env.local` and set `MONGODB_URI` and `ADMIN_EMAILS`.
+3. `npm run dev`, open [http://localhost:3000](http://localhost:3000) and create an account.
 
 Indexes are created automatically on first connection.
+
+## Routes
 
 | Route | Who | What |
 | --- | --- | --- |
 | `/` | everyone | Landing page |
-| `/register`, `/login` | everyone | Accounts (email + password) |
-| `/learn` | learners | Dashboard: course, streak, XP, profile, certificates |
-| `/learn/[lessonId]` | learners | Lesson player |
+| `/login`, `/register` | everyone | Accounts (email + password); `/register?role=Educator` preselects a role |
+| `/learn` | learners | Dashboard: course, next lesson, streak and XP |
+| `/learn/[lessonId]` | learners | Lesson player, e.g. `/learn/u1-l1` (locked until the previous lesson is complete) |
+| `/profile`, `/certificates` | learners | Settings and stats; certificate progress per level |
 | `/admin` | admins | Monitoring: accounts, activity, per-learner progress |
 | `/studio/signs` | admins (open in development) | Preview every sign and any sequence |
+
+## Project structure
+
+```
+src/
+  app/
+    page.tsx                 Landing page route
+    (auth)/                  /login and /register
+    (workspace)/             /learn, /profile, /certificates: signed-in pages sharing the workspace shell
+    (lesson)/learn/[lessonId]/  Full-screen lesson player
+    admin/, studio/signs/    Administrator pages
+    actions/                 Server actions: auth and learning
+  components/
+    landing/                 Landing page
+    auth/                    Sign-in / registration form
+    workspace/               Workspace shell and screens
+    SignStage.tsx            3D signing avatar
+  lib/
+    audiences.ts             Learner / Family / Educator roles
+    course/                  Curriculum, exercises, sign lexicon
+    learning/rules.ts        Lesson completion rules: animations, answers, hearts, XP
+    server/                  MongoDB, sessions, course progress (server only)
+    signing/                 Signing engine and sign definitions
+tests/                       Learning rules and course integrity tests
+docs/                        Design references, theme, planning and animation status
+```
 
 ## Data (MongoDB)
 
@@ -67,7 +102,26 @@ On phones the study screen fits one viewport with no page scrolling: signer on t
 
 Key vocabulary (`types.ts`): `at` (body landmark or `other.<site>` on the other hand), `off` [out, up, forward] in metres, `site` (which part of the hand touches), `dir` (where the hand points), `palm` (where the palm faces), `arc`, `hold`, `flow`. Compound signs use `seq` (e.g. JANUARY = MONTH + 1).
 
-## Checks
+## Scripts
 
-- `npm run typecheck`, `npm run lint`, `npm run build`
-- `npm test` — learning rules and course integrity tests
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Production build |
+| `npm start` | Serve the production build |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript check without emitting |
+| `npm test` | Learning rules and course integrity tests (Node test runner) |
+| `npm run audit:signs` | Physics audit of every sign (needs `npm run dev` running) |
+
+## Tech stack
+
+- [Next.js 16](https://nextjs.org) (App Router) and React 19, TypeScript
+- MongoDB Atlas via the official `mongodb` driver; sessions and scrypt password hashing built in
+- [three.js](https://threejs.org) for the signing avatar
+- CSS Modules, with shared brand tokens in `src/app/globals.css`
+- [Tabler Icons](https://tabler.io/icons)
+
+## Contributing
+
+Work happens on branches and is merged through pull requests. CI runs lint, typecheck, tests and a production build on every PR.

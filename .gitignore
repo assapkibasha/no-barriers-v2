@@ -32,7 +32,6 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
-!.env.example
 
 # vercel
 .vercel
@@ -43,6 +42,9 @@ next-env.d.ts
 
 # impeccable design-tool session cache
 /.impeccable/hook.cache.json
+
+# Playwright MCP snapshots and screenshots
+/.playwright-mcp/
 
 # source assets: the app uses public/avatar/berthin.glb; keep originals out of the public bundle
 /public/Berthin.fbx

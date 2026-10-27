@@ -1,5 +1,6 @@
 import "server-only";
 import { ObjectId } from "mongodb";
+import { cache } from "react";
 import { ALL_LESSONS, COURSE, isReady } from "@/lib/course/curriculum";
 import { collections, type ProgressDoc } from "./db";
 
@@ -26,7 +27,8 @@ export type CourseOverview = {
   next: string | null;
 };
 
-export async function courseOverview(userId: string): Promise<CourseOverview> {
+/** Cached per request, so the workspace layout and its page share one query. */
+export const courseOverview = cache(async (userId: string): Promise<CourseOverview> => {
   const { progress } = await collections();
   const docs = await progress.find({ userId: new ObjectId(userId) }, { projection: { lessonId: 1, status: 1, completedAt: 1, "state.hearts": 1 } }).toArray();
   const byLesson = new Map(docs.map(d => [d.lessonId, d]));
@@ -44,7 +46,7 @@ export async function courseOverview(userId: string): Promise<CourseOverview> {
     signsLearned: new Set(ALL_LESSONS.filter(l => completed.has(l.id)).flatMap(l => l.signs ?? [])).size,
     next: READY_ORDER.find(id => !completed.has(id) && isUnlocked(id, completed)) ?? null,
   };
-}
+});
 
 /** Daily learning streak, counted in Rwanda time. */
 export async function touchStreak(userId: ObjectId) {

@@ -2,19 +2,20 @@
 
 import { redirect } from "next/navigation";
 import { MongoServerError } from "mongodb";
-import { collections, logEvent, type Audience } from "@/lib/server/db";
+import { isAudience } from "@/lib/audiences";
+import { collections, logEvent } from "@/lib/server/db";
 import { createSession, destroySession, hashPassword, isBootstrapAdmin, loginLimits, normalizeEmail, verifyPassword } from "@/lib/server/auth";
 
 export type AuthState = { error?: string; fields?: Record<string, string> } | undefined;
 
-const AUDIENCES: Audience[] = ["Learner", "Educator", "Family"];
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const text = (data: FormData, key: string) => String(data.get(key) ?? "").trim();
 
 export async function signUp(_: AuthState, data: FormData): Promise<AuthState> {
   const name = text(data, "name"), email = normalizeEmail(text(data, "email"));
   const password = String(data.get("password") ?? "");
-  const audience = AUDIENCES.includes(text(data, "audience") as Audience) ? (text(data, "audience") as Audience) : "Learner";
+  const requested = text(data, "audience");
+  const audience = isAudience(requested) ? requested : "Learner";
   const fields = { name, email, audience };
   if (name.length < 2 || name.length > 60) return { error: "Enter your name (2 to 60 characters).", fields };
   if (!EMAIL.test(email) || email.length > 200) return { error: "Enter a valid email address.", fields };

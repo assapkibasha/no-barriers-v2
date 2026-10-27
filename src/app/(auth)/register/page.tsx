@@ -1,11 +1,13 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { RegisterForm } from "@/components/auth/AuthForm";
+import { isAudience } from "@/lib/audiences";
 import { getCurrentUser } from "@/lib/server/auth";
-import { RegisterForm } from "../AuthForm";
 
-export const metadata = { title: "Create your account | No Barriers" };
+export const metadata: Metadata = { title: "Create your account" };
 
-export default async function RegisterPage({ searchParams }: PageProps<"/register">) {
+export default async function RegisterPage(props: PageProps<"/register">) {
   if (await getCurrentUser()) redirect("/learn");
-  const as = (await searchParams).as;
-  return <RegisterForm audience={typeof as === "string" ? as : undefined} />;
+  const { role } = await props.searchParams;
+  return <RegisterForm audience={isAudience(role) ? role : "Learner"} />;
 }

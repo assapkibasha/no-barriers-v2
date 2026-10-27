@@ -1,9 +1,10 @@
 import "server-only";
 import { MongoClient, type Db, type ObjectId } from "mongodb";
+import type { Audience } from "@/lib/audiences";
 import type { LessonProgress } from "@/lib/learning/rules";
 
+export type { Audience };
 export type Role = "learner" | "admin";
-export type Audience = "Learner" | "Educator" | "Family";
 
 export type UserDoc = {
   _id: ObjectId;

@@ -9,6 +9,7 @@
  * Lessons without `signs` are planned but not yet animated; they show as "coming soon".
  */
 export type Level = "Beginner" | "Intermediate" | "Advanced";
+export const levels: Level[] = ["Beginner", "Intermediate", "Advanced"];
 
 /** A signed phrase or sentence and its English meaning. */
 export type Phrase = { play: string[]; meaning: string };
@@ -203,3 +204,4 @@ export const COURSE: UnitDef[] = [
 export const ALL_LESSONS = COURSE.flatMap(u => u.lessons.map(l => ({ ...l, unit: u })));
 export const isReady = (l: LessonDef) => !!(l.signs?.length || l.spell?.length || l.numbers?.length || l.phrases?.length);
 export const findLesson = (id: string) => ALL_LESSONS.find(l => l.id === id);
+export const unitsInLevel = (level: Level) => COURSE.filter(u => u.level === level);
