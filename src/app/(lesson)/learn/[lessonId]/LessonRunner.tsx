@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { IconArrowRight, IconCheck, IconHeartFilled, IconPlayerPlay, IconStar, IconX } from "@tabler/icons-react";
+import { IconArrowRight, IconCheck, IconFlame, IconHeartFilled, IconPlayerPlay, IconStar, IconVolume, IconVolumeOff, IconX } from "@tabler/icons-react";
+import { play as playSound, setSoundEnabled, soundEnabled, subscribeSound } from "@/lib/sound";
+import { pickCelebration, pickGreeting } from "@/lib/signing/reactions";
 import SignStage, { type SignStageHandle } from "@/components/SignStage";
 import type { LessonPlan, Step } from "@/lib/course/exercises";
 import type { LessonProgress } from "@/lib/learning/rules";
@@ -20,6 +22,11 @@ export default function LessonRunner({ plan, leftHanded, nextLessonId }: { plan:
   const [practice, setPractice] = useState(false);
   const [queue, setQueue] = useState<string[]>([]);
   const [turn, setTurn] = useState(0);
+  /** The server has recorded this lesson as complete. */
+  const [serverDone, setServerDone] = useState(false);
+  /** A different greeting and celebration each lesson. */
+  const [greeting] = useState(pickGreeting);
+  const [celebration] = useState(pickCelebration);
   const [started, setStarted] = useState(false);
   const [choice, setChoice] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Feedback>(null);
@@ -32,6 +39,8 @@ export default function LessonRunner({ plan, leftHanded, nextLessonId }: { plan:
   /** Correct answers revealed by feedback, so review can replay the right sign. */
   const [known, setKnown] = useState<Record<string, string>>({});
   const [reviewing, setReviewing] = useState<Question | null>(null);
+  /** Set when a run of correct answers reaches a milestone, to celebrate it. */
+  const [streak, setStreak] = useState(0);
   const byId = useMemo(() => new Map(plan.steps.map(s => [s.id, s])), [plan]);
   const captionOf = (play: string[]) => play.map(p => plan.glosses[p] ?? p);
 
@@ -39,8 +48,11 @@ export default function LessonRunner({ plan, leftHanded, nextLessonId }: { plan:
     openLesson(plan.lessonId).then(res => {
       if (res.error) { setError(res.error); return; }
       setState(res.state);
+      if (res.justCompleted) { setXpGained(res.xpGained ?? 0); setStarted(true); setDone(true); return; }
       setPractice(res.completed);
-      setQueue(plan.steps.filter(s => !satisfied(s, res.state)).map(s => s.id));
+      const pending = plan.steps.filter(s => !satisfied(s, res.state)).map(s => s.id);
+      setQueue(pending);
+      if (!pending.length) setDone(true);
       // Resuming mid-lesson skips the introduction.
       setStarted(res.state.watchedAnimations.length > 0 && !res.completed);
     });
@@ -63,6 +75,7 @@ export default function LessonRunner({ plan, leftHanded, nextLessonId }: { plan:
     if (res.error) { setError(res.error); return false; }
     setError("");
     setState(res.state);
+    setServerDone(res.completed);
     if (res.xpGained) setXpGained(x => x + res.xpGained!);
     return true;
   };
@@ -81,7 +94,14 @@ export default function LessonRunner({ plan, leftHanded, nextLessonId }: { plan:
     if (!sync(res)) return;
     setFeedback({ correct: res.correct, correctOptionId: res.correctOptionId });
     setKnown(k => ({ ...k, [step.id]: res.correctOptionId }));
-    if (res.completed && !practice) setDone(true);
+    // Sound and a reaction from the signer, like a teacher watching.
+    const signer = stage.current?.player();
+    const run = res.state.correctRun;
+    const milestone = res.correct && [3, 5, 10, 15, 20].includes(run);
+    setStreak(milestone ? run : 0);
+    if (res.correct) { playSound(milestone ? "streak" : "correct", run); signer?.react("happy"); }
+    else { playSound(res.state.reviewRequired ? "heartsOut" : "wrong"); signer?.react("sad"); }
+    if (res.completed && !practice) { window.setTimeout(() => playSound("complete"), 450); setDone(true); }
   };
 
   const advance = () => {
@@ -89,10 +109,12 @@ export default function LessonRunner({ plan, leftHanded, nextLessonId }: { plan:
     // Missed questions come back at the end of the lesson.
     const rest = queue.slice(1);
     const again = step.kind === "question" && !state.correctQuestions.includes(step.id) ? [step.id] : [];
-    const next = [...rest, ...again];
+    let next = [...rest, ...again];
+    // Only finish when the server has recorded the completion; anything still missing comes back.
+    if (!next.length && !practice && !serverDone) next = plan.steps.filter(s => !satisfied(s, state)).map(s => s.id);
     setQueue(next);
     setTurn(t => t + 1);
-    if (!next.length) setDone(true);
+    if (!next.length) { setDone(true); if (!practice) playSound("complete"); }
   };
 
   const refill = async () => {
@@ -100,19 +122,20 @@ export default function LessonRunner({ plan, leftHanded, nextLessonId }: { plan:
     setBusy(true);
     const res = await finishReview(plan.lessonId, state);
     setBusy(false);
-    sync(res);
+    if (sync(res)) playSound("refill");
   };
 
   if (error && !state) return <Shell plan={plan} progress={0} hearts={5}><div className={styles.message} role="alert"><h1>We could not open this lesson</h1><p>{error}</p><Link className={styles.primary} href="/learn">Back to my learning</Link></div></Shell>;
   if (!state) return <Shell plan={plan} progress={0} hearts={5}><div className={styles.message} role="status"><p>Loading your lesson…</p></div></Shell>;
 
   if (done) return <Shell plan={plan} progress={1} hearts={state.hearts}><div className={styles.message}>
+    <SignStage items={celebration} autoPlay mirror={leftHanded} className={styles.smallStage} label="The signer applauds you" />
     <span className={styles.badge}><IconCheck size={36} /></span>
     <h1>{practice ? "Practice complete" : "Lesson complete!"}</h1>
     <p>{plan.goal}</p>
     {!practice && <p className={styles.xp}><IconStar size={20} /> {xpGained} XP earned</p>}
     <div className={styles.actions}>
-      {nextLessonId && <Link className={styles.primary} href={`/learn/${nextLessonId}`}>Next lesson<IconArrowRight size={18} /></Link>}
+      {nextLessonId && <Link className={styles.primary} href={`/learn/${nextLessonId}`} onClick={() => playSound("transition")}>Next lesson<IconArrowRight size={18} /></Link>}
       <Link className={nextLessonId ? styles.secondary : styles.primary} href="/learn">Back to my learning</Link>
     </div>
   </div></Shell>;
@@ -139,22 +162,24 @@ export default function LessonRunner({ plan, leftHanded, nextLessonId }: { plan:
   }
 
   if (!started) return <Shell plan={plan} progress={progress} hearts={state.hearts}><div className={styles.message}>
+    <SignStage items={greeting} autoPlay mirror={leftHanded} className={styles.smallStage} label="The signer greets you" />
     <small>{plan.level} · {plan.unit}</small>
     <h1>{plan.title}</h1>
     <p className={styles.goal}>{plan.goal}</p>
     {plan.note && <div className={styles.note}><strong>Before you start</strong><p>{plan.note}</p></div>}
     {practice && <p>You have completed this lesson. Practising again will not change your score.</p>}
-    <button className={styles.primary} onClick={() => setStarted(true)}>Start<IconArrowRight size={18} /></button>
+    <button className={styles.primary} onClick={() => { playSound("transition"); setStarted(true); }}>Start<IconArrowRight size={18} /></button>
   </div></Shell>;
 
-  if (!step) return null;
+  // Never show an empty page: if nothing is queued, the lesson is finished or still loading.
+  if (!step) return <Shell plan={plan} progress={progress} hearts={state.hearts}><div className={styles.message} role="status"><p>Getting your next step ready…</p><Link className={styles.secondary} href="/learn">Back to my learning</Link></div></Shell>;
   const q = step.kind === "question" ? step : null;
   const isPick = q?.type === "pick";
   const canContinue = step.kind === "learn" ? played || state.watchedAnimations.includes(step.animation) : !!feedback;
 
   return <Shell plan={plan} progress={progress} hearts={state.hearts}>
     <div className={styles.layout}>
-      <SignStage ref={stage} items={stageItems} captions={step.kind === "learn" ? [step.gloss] : captionOf(stageItems)} hideCaption={!!q && !feedback} autoPlay={!isPick} mirror={leftHanded} className={styles.stage}
+      <SignStage ref={stage} items={stageItems} captions={step.kind === "learn" ? [step.gloss] : captionOf(stageItems)} hideCaption={!!q && !feedback} autoPlay={!isPick} playKey={turnKey} mirror={leftHanded} className={styles.stage}
         onPlayed={() => void watched(step.animation)} label={step.kind === "learn" ? `Sign for ${step.gloss}` : "Sign to identify"} />
       <section className={styles.panel} aria-live="polite">
         {step.kind === "learn" ? <>
@@ -168,7 +193,7 @@ export default function LessonRunner({ plan, leftHanded, nextLessonId }: { plan:
           <div className={styles.options} role="group" aria-label="Answer choices" data-question={q.id}>{q.options.map(o => {
             const state = feedback ? (o.id === feedback.correctOptionId ? styles.right : o.id === choice ? styles.wrong : "") : o.id === choice ? styles.selected : "";
             return <button key={o.id} className={state} disabled={!!feedback || busy} aria-pressed={o.id === choice}
-              onClick={() => { setChoice(o.id); if (o.play) { setStageItems(o.play); void stage.current?.play(o.play); } }}>
+              onClick={() => { playSound("tap"); setChoice(o.id); if (o.play) { setStageItems(o.play); void stage.current?.play(o.play); } }}>
               <span>{o.id}</span>{o.label}{o.play && <IconPlayerPlay size={16} className={styles.playIcon} aria-label="plays this sign" />}
             </button>;
           })}</div>
@@ -179,7 +204,7 @@ export default function LessonRunner({ plan, leftHanded, nextLessonId }: { plan:
     </div>
     <footer className={`${styles.footer} ${feedback ? (feedback.correct ? styles.footerRight : styles.footerWrong) : ""}`}>
       <div className={styles.footerInner}>
-        <p role="status">{feedback ? (feedback.correct ? "Correct! Well done." : `Not quite. The answer is ${q?.options.find(o => o.id === feedback.correctOptionId)?.label}. This one will come back later.`) : step.kind === "learn" && !canContinue ? "Watch the sign to continue." : ""}</p>
+        <p role="status">{feedback && streak ? <span className={styles.streak}><IconFlame size={20} />{streak} in a row!</span> : feedback ? (feedback.correct ? "Correct! Well done." : `Not quite. The answer is ${q?.options.find(o => o.id === feedback.correctOptionId)?.label}. This one will come back later.`) : step.kind === "learn" && !canContinue ? "Watch the sign to continue." : ""}</p>
         {q && !feedback ? <button className={styles.primary} disabled={!choice || busy} onClick={check}>{busy ? "Checking…" : "Check"}<IconArrowRight size={18} /></button>
           : <button className={styles.primary} disabled={!canContinue} onClick={advance}>Continue<IconArrowRight size={18} /></button>}
       </div>
@@ -193,7 +218,16 @@ function Shell({ plan, progress, hearts, children }: { plan: LessonPlan; progres
       <Link href="/learn" className={styles.exit} aria-label="Leave lesson"><IconX size={22} /></Link>
       <div className={styles.bar} role="progressbar" aria-label={`${plan.title} progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}><span style={{ width: `${Math.round(progress * 100)}%` }} /></div>
       <span className={styles.hearts} aria-label={`${hearts} hearts left`}><IconHeartFilled size={22} />{hearts}</span>
+      <SoundToggle />
     </header>
     <main className={styles.body}>{children}</main>
   </div>;
+}
+
+/** Mute or unmute learning sounds (remembered in this browser). */
+function SoundToggle() {
+  const on = useSyncExternalStore(subscribeSound, soundEnabled, () => true);
+  return <button type="button" className={styles.exit} aria-pressed={on} aria-label={on ? "Mute sounds" : "Turn sounds on"} onClick={() => { setSoundEnabled(!on); if (!on) playSound("tap"); }}>
+    {on ? <IconVolume size={22} /> : <IconVolumeOff size={22} />}
+  </button>;
 }

@@ -11,6 +11,7 @@ const TOPICS: Record<string, () => Promise<{ default: SignDef[] }>> = {
   food: () => import("./food"),
   clothes: () => import("./clothes"),
   color: () => import("./clothes"),
+  react: () => import("./react"),
 };
 
 export const signTopics = Object.keys(TOPICS);

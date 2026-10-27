@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/server/auth";
 import { collections, logEvent } from "@/lib/server/db";
 import { isUnlocked, touchStreak, XP_LESSON_BONUS, XP_PER_ANSWER } from "@/lib/server/learning";
 
-export type LessonSync = { state: LessonProgress; completed: boolean; xpGained?: number; error?: string };
+export type LessonSync = { state: LessonProgress; completed: boolean; xpGained?: number; error?: string; /** Completed by this call (show the completion screen). */ justCompleted?: boolean };
 
 async function context(lessonId: string) {
   const user = await getCurrentUser();
@@ -32,6 +32,9 @@ export async function openLesson(lessonId: string): Promise<LessonSync> {
     if (doc) {
       // A completed lesson can be practised again from a fresh state.
       if (doc.status === "completed") return { state: startLesson(definition), completed: true };
+      // Work already done but never recorded (e.g. an older rule required every question's signing to
+      // finish playing): record the completion now so the learner is not stuck.
+      if (isLessonComplete(definition, doc.state)) return { ...(await save(userId, lessonId, doc.state, false)), justCompleted: true };
       return { state: doc.state, completed: false };
     }
     const now = new Date();

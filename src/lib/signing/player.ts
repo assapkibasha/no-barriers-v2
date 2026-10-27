@@ -6,7 +6,7 @@ import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js
 import { buildRig, siteLocal, type ArmRig, type Rig } from "./rig";
 import { buildBody, bodyPush, capsulePush, segmentClosest, updateBody, type Capsule } from "./physics";
 import { compileSign, restSign, type CompiledSign, type Hands } from "./compile";
-import { applyBody } from "./body";
+import { applyBody, type Reaction } from "./body";
 import { applyArm, makePlan, placeClavicle, planArm, type ArmPlan } from "./solve";
 import { buildTimeline, type SequenceItem, type Timeline } from "./timeline";
 import { type HandPose, clonePose, makePose, sampleTrack } from "./track";
@@ -133,8 +133,8 @@ export class SignAvatarPlayer {
     player.scene.add(model);
     player.rig = buildRig(model);
     player.body = buildBody(player.rig);
-    // Development aid for automated physics audits.
-    if (process.env.NODE_ENV !== "production") Object.assign(window, { __siteLocal: siteLocal, __bodyPush: bodyPush, __segmentClosest: segmentClosest });
+    // Read-only geometry helpers for the automated physics audit (npm run audit:signs), on the studio only.
+    if (location.pathname.startsWith("/studio")) Object.assign(window, { __siteLocal: siteLocal, __bodyPush: bodyPush, __segmentClosest: segmentClosest });
     player.setMirror(!!opts.mirror);
     player.resize();
     player.loop();
@@ -153,8 +153,15 @@ export class SignAvatarPlayer {
 
   setSpeed(speed: number) { this.speed = Math.max(0.25, Math.min(1.5, speed)); }
 
-  /** Play signs in order as one continuous performance. Resolves true when finished, false if interrupted. */
-  async play(items: PlayItem[]): Promise<boolean> {
+  /** A momentary head-and-body reaction (approving nod, gentle head shake), layered on any motion. */
+  react(kind: Reaction) { this.reactions.push({ kind, start: this.time }); }
+  private reactions: { kind: Reaction; start: number }[] = [];
+
+  /**
+   * Play signs in order as one continuous performance. Resolves true when finished, false if
+   * interrupted. `silent` plays without reporting caption progress (for the signer's own reactions).
+   */
+  async play(items: PlayItem[], opts: { silent?: boolean } = {}): Promise<boolean> {
     // New content brings the view back to the front; a replay keeps the learner's angle.
     if (JSON.stringify(items) !== JSON.stringify(this.lastItems)) this.returning = true;
     this.lastItems = items;
@@ -166,7 +173,7 @@ export class SignAvatarPlayer {
       if (!expanded.some(e => this.defs.get(e.id)?.seq)) break;
       expanded = expanded.flatMap(e => this.defs.get(e.id)?.seq?.map(id => ({ ...e, id, shift: undefined, lead: undefined })) ?? [e]);
     }
-    this.origins = expanded.map(e => e.origin);
+    this.origins = expanded.map(e => (opts.silent ? -1 : e.origin));
     const seq: SequenceItem[] = expanded.map(e => {
       const def = this.defs.get(e.id);
       if (!def) throw new Error(`No animation for "${e.id}".`);
@@ -281,8 +288,10 @@ export class SignAvatarPlayer {
     this.idle += ((tl ? 0.3 : 1) - this.idle) * Math.min(1, dt * 2.5);
     const domSign = this.mirror ? -1 : 1;
     const p = this.current.dom.pos;
+    this.reactions = this.reactions.filter(r => this.time - r.start < 1.5);
     applyBody(this.rig, {
       time: this.time, idle: this.idle, timeline: tl, playTime: this.playTime, domSign,
+      reactions: this.reactions.map(r => ({ kind: r.kind, age: this.time - r.start })),
       reach: tl ? { lateral: -p.x * domSign, height: p.y, forward: p.z } : undefined,
     });
     this.rig.root.updateMatrixWorld(true);

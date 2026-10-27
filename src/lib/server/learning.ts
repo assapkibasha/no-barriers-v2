@@ -19,16 +19,18 @@ export function isUnlocked(lessonId: string, completed: Set<string>) {
 
 export type LessonStatus = "completed" | "in_progress" | "available" | "locked" | "coming_soon";
 export type CourseOverview = {
-  units: { id: string; level: string; title: string; summary: string; lessons: { id: string; title: string; goal: string; status: LessonStatus; hearts?: number }[] }[];
+  units: { id: string; level: string; title: string; summary: string; lessons: { id: string; title: string; goal: string; status: LessonStatus; hearts?: number; completedAt?: string }[] }[];
   completed: number;
   total: number;
+  /** Distinct signs taught in completed lessons. */
+  signsLearned: number;
   next: string | null;
 };
 
 /** Cached per request, so the workspace layout and its page share one query. */
 export const courseOverview = cache(async (userId: string): Promise<CourseOverview> => {
   const { progress } = await collections();
-  const docs = await progress.find({ userId: new ObjectId(userId) }, { projection: { lessonId: 1, status: 1, "state.hearts": 1 } }).toArray();
+  const docs = await progress.find({ userId: new ObjectId(userId) }, { projection: { lessonId: 1, status: 1, completedAt: 1, "state.hearts": 1 } }).toArray();
   const byLesson = new Map(docs.map(d => [d.lessonId, d]));
   const completed = new Set(docs.filter(d => d.status === "completed").map(d => d.lessonId));
   const status = (id: string, ready: boolean): LessonStatus => {
@@ -38,9 +40,10 @@ export const courseOverview = cache(async (userId: string): Promise<CourseOvervi
     return byLesson.has(id) ? "in_progress" : "available";
   };
   return {
-    units: COURSE.map(u => ({ id: u.id, level: u.level, title: u.title, summary: u.summary, lessons: u.lessons.map(l => ({ id: l.id, title: l.title, goal: l.goal, status: status(l.id, isReady(l)), hearts: byLesson.get(l.id)?.state.hearts })) })),
+    units: COURSE.map(u => ({ id: u.id, level: u.level, title: u.title, summary: u.summary, lessons: u.lessons.map(l => ({ id: l.id, title: l.title, goal: l.goal, status: status(l.id, isReady(l)), hearts: byLesson.get(l.id)?.state.hearts, completedAt: byLesson.get(l.id)?.completedAt?.toISOString() })) })),
     completed: completed.size,
     total: READY_ORDER.length,
+    signsLearned: new Set(ALL_LESSONS.filter(l => completed.has(l.id)).flatMap(l => l.signs ?? [])).size,
     next: READY_ORDER.find(id => !completed.has(id) && isUnlocked(id, completed)) ?? null,
   };
 });

@@ -6,5 +6,5 @@ import { courseOverview } from "@/lib/server/learning";
 export default async function WorkspaceLayout({ children }: { children: ReactNode }) {
   const user = await requireUser();
   const { completed, total } = await courseOverview(user.id);
-  return <WorkspaceShell user={user} percent={total ? Math.round(completed / total * 100) : 0}>{children}</WorkspaceShell>;
+  return <WorkspaceShell user={user} completed={completed} total={total}>{children}</WorkspaceShell>;
 }

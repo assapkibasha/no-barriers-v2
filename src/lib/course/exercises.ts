@@ -97,7 +97,9 @@ export function buildLesson(lessonId: string): BuiltLesson {
   const plan: LessonPlan = { lessonId: lesson.id, version: CONTENT_VERSION, title: lesson.title, goal: lesson.goal, note: lesson.note, unit: lesson.unit.title, level: lesson.unit.level, steps, glosses };
   const definition: LessonDefinition = {
     id: lesson.id, version: CONTENT_VERSION,
-    requiredAnimations: steps.map(s => s.animation),
+    // Only new signs must be watched to the end; questions are judged by their answers, so a learner who
+    // answers before a question's signing finishes is not blocked from completing the lesson.
+    requiredAnimations: steps.flatMap(s => (s.kind === "learn" ? [s.animation] : [])),
     questions: steps.flatMap(s => (s.kind === "question" ? [{ id: s.id, animationId: s.animation, correctOptionId: answers[s.id] }] : [])),
   };
   return { plan, definition, answers };

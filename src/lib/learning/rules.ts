@@ -30,7 +30,8 @@ function validate(lesson: LessonDefinition, progress: LessonProgress) {
 
 export function recordAnimation(lesson: LessonDefinition, progress: LessonProgress, animationId: string): LessonProgress {
   validate(lesson, progress);
-  if (!lesson.requiredAnimations.includes(animationId)) throw new Error("Unknown animation.");
+  // New signs must be watched; a question's own signing may also be (re)watched, e.g. during review.
+  if (!lesson.requiredAnimations.includes(animationId) && !lesson.questions.some(q => q.animationId === animationId)) throw new Error("Unknown animation.");
   if (progress.reviewRequired) return { ...progress, reviewedAnimations: [...new Set([...progress.reviewedAnimations, animationId])] };
   return { ...progress, watchedAnimations: [...new Set([...progress.watchedAnimations, animationId])] };
 }
@@ -58,5 +59,5 @@ export function restoreHearts(progress: LessonProgress): LessonProgress {
 
 export function isLessonComplete(lesson: LessonDefinition, progress: LessonProgress): boolean {
   validate(lesson, progress);
-  return lesson.requiredAnimations.length > 0 && lesson.questions.length > 0 && !progress.reviewRequired && lesson.requiredAnimations.every(id => progress.watchedAnimations.includes(id)) && lesson.questions.every(item => progress.correctQuestions.includes(item.id));
+  return lesson.requiredAnimations.length + lesson.questions.length > 0 && !progress.reviewRequired && lesson.requiredAnimations.every(id => progress.watchedAnimations.includes(id)) && lesson.questions.every(item => progress.correctQuestions.includes(item.id));
 }
